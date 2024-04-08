@@ -19,10 +19,7 @@ let updateTime = new Date().toISOString();
 
 // 调用路径
 const url = "https://m.ithome.com/rankm/";
-const headers = {
-  "User-Agent":
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
-};
+
 
 // it之家特殊处理 - url
 const replaceLink = (url) => {
@@ -36,30 +33,34 @@ const getData = (data) => {
   const dataList = [];
   const $ = cheerio.load(data);
   try {
-    $(".rank-name").each(() => {
-      const type = $(this).data("rank-type");
-      const newListHtml = $(this).next(".rank-box").html();
-      cheerio
-        .load(newListHtml)(".placeholder")
-        .get()
-        .map((v) => {
-          dataList.push({
-            title: $(v).find(".plc-title").text(),
-            img: $(v).find("img").attr("data-original"),
-            time: $(v).find(".post-time").text(),
-            type: $(this).text(),
-            typeName: type,
-            hot: Number($(v).find(".review-num").text().replace(/\D/g, "")),
-            url: replaceLink($(v).find("a").attr("href")),
-            mobileUrl: $(v).find("a").attr("href"),
-          });
+    let rankParent = $("div[class=rank]");
+    let allRank = $(rankParent).find("div[class=rank-name]");
+    let rankLen = allRank.length;
+    for (let i = 0; i < rankLen; i++) {
+      const type = $(allRank[i]).data("rank-type");
+      const rankBox = $(allRank[i]).next();
+      let allPlaceholder = $(rankBox).children(".placeholder");
+      let dataLen = allPlaceholder.length;
+      for (let j = 0; j < dataLen; j++) {
+        let content = $(allPlaceholder[j]);
+        dataList.push({
+          title: content.find(".plc-title").text(),
+          img: content.find("img").attr("data-original"),
+          time: content.find(".post-time").text(),
+          type: content.text(),
+          typeName: type,
+          hot: Number(content.find(".review-num").text().replace(/\D/g, "")),
+          url: replaceLink(content.find("a").attr("href")),
+          mobileUrl: content.find("a").attr("href"),
         });
+      }
       // dataList[type] = {
       //   name: $(this).text(),
       //   total: newsList.length,
       //   list: newsList,
       // };
-    });
+    }
+
     return dataList;
   } catch (error) {
     console.error("数据处理出错" + error);
@@ -78,7 +79,9 @@ itHomeRouter.get("/ithome", async (ctx) => {
       // 如果缓存中不存在数据
       console.log("从服务端重新获取IT之家热榜");
       // 从服务器拉取数据
-      const response = await axios.get(url, { headers });
+      const response = await axios.get(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" }, //设置header信息
+      });
       data = getData(response.data);
       updateTime = new Date().toISOString();
       if (!data) {
@@ -116,7 +119,9 @@ itHomeRouter.get("/ithome/new", async (ctx) => {
   console.log("获取IT之家热榜 - 最新数据");
   try {
     // 从服务器拉取最新数据
-    const response = await axios.get(url, { headers });
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" }, //设置header信息
+    });
     const newData = getData(response.data);
     updateTime = new Date().toISOString();
     console.log("从服务端重新获取IT之家热榜");
