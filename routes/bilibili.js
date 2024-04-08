@@ -48,7 +48,9 @@ bilibiliRouter.get("/bilibili", async (ctx) => {
       // 如果缓存中不存在数据
       console.log("从服务端重新获取哔哩哔哩热门榜");
       // 从服务器拉取数据
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" }, //设置header信息
+      });
       data = getData(response.data.data.list);
       updateTime = new Date().toISOString();
       // 将数据写入缓存
@@ -78,7 +80,9 @@ bilibiliRouter.get("/bilibili/new", async (ctx) => {
   console.log("获取哔哩哔哩热门榜 - 最新数据");
   try {
     // 从服务器拉取最新数据
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" }, //设置header信息
+    });
     const newData = getData(response.data.data.list);
     updateTime = new Date().toISOString();
     console.log("从服务端重新获取哔哩哔哩热门榜");
